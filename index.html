@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Platforms</title>
+    <style>
+      * {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: black;
+      }
+      html,
+      body,
+      #cnvs {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="cnvs"></canvas>
+  </body>
+  <script>
+    const cnvs = document.getElementById("cnvs");
+    cnvs.width = document.body.clientWidth;
+    cnvs.height = document.body.clientHeight;
+    const ctx = cnvs.getContext("2d");
+
+    const PLATFORM_WIDTH = 50;
+    const PLATFORM_HEIGHT = PLATFORM_WIDTH * 0.7;
+    const PLATFORM_PART = PLATFORM_WIDTH / 5;
+
+    const keys = {
+      left: false,
+      right: false,
+      up: false,
+      down: false,
+    };
+    const onKeyDown = (e) => {
+      console.log(e);
+      if (e.code === "KeyA" || e.code === "ArrowLeft") {
+        keys.left = true;
+      }
+      if (e.key === "KeyD" || e.code === "ArrowRight") {
+        keys.right = true;
+      }
+      if (e.key === "KeyW" || e.code === "ArrowUp") {
+        keys.up = true;
+      }
+      if (e.key === "KeyS" || e.code === "ArrowDown") {
+        keys.down = true;
+      }
+    };
+    const onKeyRelease = (e) => {
+      if (e.key === "KeyA" || e.code === "ArrowLeft") {
+        keys.left = false;
+      }
+      if (e.key === "KeyD" || e.code === "ArrowRight") {
+        keys.right = false;
+      }
+      if (e.key === "KeyW" || e.code === "ArrowUp") {
+        keys.up = false;
+      }
+      if (e.key === "KeyS" || e.code === "ArrowDown") {
+        keys.down = false;
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keyup", onKeyRelease);
+
+    class Player {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.velX = 0;
+        this.velY = 0;
+      }
+
+      update() {
+        if (keys.right) {
+          this.velX < 3 && this.velX++;
+        }
+        if (keys.left) {
+            this.velX > -3 &&this.velX--;
+        }
+        if (keys.down) {
+            this.velY < 3 && this.velY++;
+        }
+        if (keys.up) {
+            this.velY > -3 && this.velY--;
+        }
+
+        this.x += this.velX;
+        this.y += this.velY;
+        this.velX *= 0.9;
+        this.velY *= 0.9;
+      }
+
+      draw() {
+        ctx.save();
+        ctx.beginPath();
+        ctx.fillStyle = "white";
+        ctx.moveTo(this.x, this.y);
+        ctx.lineTo(this.x - PLATFORM_PART / 2, this.y - PLATFORM_PART);
+        ctx.lineTo(this.x + PLATFORM_PART / 2, this.y - PLATFORM_PART);
+        ctx.lineTo(this.x, this.y);
+        ctx.arc(this.x, this.y - PLATFORM_PART * 1.5, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+        ctx.restore();
+      }
+    }
+    const player = new Player(50, 50);
+
+    class Platform {
+      constructor({ x, y, type }) {
+        this.x = x;
+        this.y = y;
+        this.type = type;
+        this.rootHash = Math.round(Math.random() * 88888 + 10000) + "";
+      }
+
+      draw() {
+        switch (this.type) {
+          case 1:
+            ctx.save();
+            ctx.beginPath();
+            ctx.fillStyle = "gray";
+            for (let i = 0; i < this.rootHash.length; i++) {
+              ctx.fillRect(
+                this.x + i * PLATFORM_PART,
+                this.y + PLATFORM_HEIGHT - this.rootHash[i],
+                PLATFORM_PART,
+                PLATFORM_PART + this.rootHash[i] * 2
+              );
+            }
+            ctx.fillStyle = "darkgray";
+            ctx.fillRect(this.x, this.y, PLATFORM_WIDTH, PLATFORM_HEIGHT);
+            ctx.closePath();
+            ctx.restore();
+            break;
+
+          case 2:
+            ctx.save();
+            ctx.beginPath();
+            ctx.fillStyle = "lightgray";
+            ctx.fillRect(this.x, this.y, PLATFORM_WIDTH, PLATFORM_HEIGHT);
+            ctx.closePath();
+            ctx.restore();
+            break;
+        }
+      }
+    }
+
+    const platforms = [
+      [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0],
+      [1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
+      [1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0],
+      [1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1],
+      [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1],
+      [1, 1, 1, 0, 1, 2, 1, 0, 1, 1, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1],
+      [1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
+      [1, 1, 0, 0, 1, 1, 1, 1, 1, 2, 2, 1, 0],
+      [1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1],
+      [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1],
+      [2, 2, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
+      [2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1],
+      [2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1],
+      [0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1],
+      [0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+      [0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0],
+    ]
+      .map((row, i) =>
+        row.map(
+          (cell, i2) =>
+            new Platform({
+              x: i2 * PLATFORM_WIDTH,
+              y: i * PLATFORM_HEIGHT,
+              type: cell,
+            })
+        )
+      )
+      .flat()
+      .toSorted((a, b) => a.y - b.y);
+
+    const draw = () => {
+      ctx.clearRect(0, 0, cnvs.width, cnvs.height);
+      platforms.forEach((p) => p.draw());
+
+      player.update();
+      player.draw();
+      window.requestAnimationFrame(draw);
+    };
+    draw();
+  </script>
+</html>
